@@ -115,6 +115,17 @@ def test_examples_available():
     assert client.get("/api/example/3").status_code == 404
 
 
+def test_api_returns_502_when_llm_fails(monkeypatch):
+    def boom(product, cfg):
+        raise core.LlmError("LLM вернула 500: сбой")
+
+    monkeypatch.setattr(core, "LlmConfig", type("C", (), {"from_env": classmethod(lambda cls: object())}))
+    monkeypatch.setattr(core, "generate", boom)
+    r = TestClient(app).post("/api/generate", json=PRODUCT)
+    assert r.status_code == 502
+    assert "LLM" in r.json()["detail"]
+
+
 def test_api_returns_card(monkeypatch):
     class DummyConfig:
         model = "test"
