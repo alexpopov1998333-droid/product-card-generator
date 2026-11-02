@@ -15,7 +15,7 @@ load_dotenv(Path(__file__).with_name(".env"))
 
 app = FastAPI(title="AI-помощник для карточек товаров", version="0.1.0")
 
-PAGE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
+PAGE = r"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <title>Карточка товара</title><style>
 body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f5f6f8;color:#1a1a1a}
 .wrap{max-width:900px;margin:0 auto;padding:24px}
@@ -53,17 +53,38 @@ async function run(){
       body:document.getElementById('src').value});
     const d=await r.json();
     if(!r.ok){out.innerHTML='<div class="card err"><h2>Ошибка</h2><pre>'+esc(d.detail||JSON.stringify(d))+'</pre></div>';}
-    else {out.innerHTML=render(d);}
+    else {out.innerHTML=render(d);
+      out.querySelector('#copy').onclick=function(){copyCard(this,d);};
+      out.querySelector('#dl').onclick=function(){dl(d);};}
   }catch(e){out.innerHTML='<div class="card err"><h2>Ошибка сети</h2><pre>'+esc(e)+'</pre></div>';}
   btn.disabled=false; btn.textContent='Сгенерировать карточку';
 }
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function mdOf(d){
+  let t='# '+d.seo_title+'\n\n'+d.seo_description+'\n\n## Характеристики\n\n';
+  t+=d.specs.map(s=>'- '+s.name+': '+s.value).join('\n');
+  t+='\n\n## Поисковые запросы\n\n'+d.search_queries.map((q,i)=>(i+1)+'. '+q).join('\n');
+  t+='\n\n## Кому подходит\n\n'+d.commercial_block+'\n';
+  if(d.missing_fields&&d.missing_fields.length){t+='\n## Не хватает данных\n\n'+d.missing_fields.map(m=>'- '+m).join('\n')+'\n';}
+  if(d.warnings&&d.warnings.length){t+='\n## Предупреждения проверки\n\n'+d.warnings.map(w=>'- '+w).join('\n')+'\n';}
+  return t;
+}
+function dl(d){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([mdOf(d)],{type:'text/markdown;charset=utf-8'}));
+  a.download='kartochka.md'; a.click(); URL.revokeObjectURL(a.href);
+}
+function copyCard(btn,d){
+  navigator.clipboard.writeText(mdOf(d)).then(()=>{btn.textContent='Скопировано';setTimeout(()=>btn.textContent='Скопировать карточку',1500);});
+}
 function render(d){
   const specs=d.specs.map(s=>'<tr><td>'+esc(s.name)+'</td><td>'+esc(s.value)+'</td></tr>').join('');
   const q=d.search_queries.map(x=>'<li>'+esc(x)+'</li>').join('');
   const miss=(d.missing_fields||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
   const warn=(d.warnings||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
-  return '<div class="card"><h2>SEO-заголовок</h2><pre>'+esc(d.seo_title)+'</pre></div>'+
+  return '<div class="card"><button class="ghost" id="copy">Скопировать карточку</button>'+
+   '<button class="ghost" id="dl">Скачать Markdown</button></div>'+
+   '<div class="card"><h2>SEO-заголовок</h2><pre>'+esc(d.seo_title)+'</pre></div>'+
    '<div class="card"><h2>SEO-описание</h2><pre>'+esc(d.seo_description)+'</pre></div>'+
    '<div class="card"><h2>Характеристики</h2><table>'+specs+'</table></div>'+
    '<div class="card"><h2>Поисковые запросы</h2><ul>'+q+'</ul></div>'+
