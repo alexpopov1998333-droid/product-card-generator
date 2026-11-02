@@ -69,8 +69,7 @@ function render(d){
    '<div class="card"><h2>Поисковые запросы</h2><ul>'+q+'</ul></div>'+
    '<div class="card"><h2>Блок для менеджера</h2><pre>'+esc(d.commercial_block)+'</pre></div>'+
    (miss?'<div class="card warn"><h2>Не хватает данных</h2><ul>'+miss+'</ul></div>':'')+
-   (warn?'<div class="card warn"><h2>Предупреждения проверки</h2><ul>'+warn+'</ul></div>':'')+
-   '<div class="card"><h2>Метаданные</h2><pre>'+esc(JSON.stringify(d.meta))+'</pre></div>';
+   (warn?'<div class="card warn"><h2>Предупреждения проверки</h2><ul>'+warn+'</ul></div>':'');
 }
 </script></div></body></html>"""
 
