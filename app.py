@@ -23,6 +23,7 @@ h1{font-size:22px;margin:0 0 4px}p.hint{color:#666;margin:0 0 20px;font-size:14p
 textarea{width:100%;min-height:320px;font-family:ui-monospace,Consolas,monospace;font-size:13px;
 padding:12px;border:1px solid #ccc;border-radius:8px;background:#fff;box-sizing:border-box}
 button{margin-top:12px;padding:10px 20px;border:0;border-radius:8px;background:#2456d6;color:#fff;font-size:15px;cursor:pointer}
+button.ghost{background:#e8edf9;color:#2456d6;margin:0 8px 8px 0;padding:8px 14px;font-size:14px}
 button:disabled{opacity:.6;cursor:wait}
 .card{background:#fff;border:1px solid #e2e4e8;border-radius:10px;padding:16px;margin-top:16px}
 .card h2{font-size:15px;margin:0 0 8px;color:#2456d6}
@@ -34,10 +35,16 @@ pre{white-space:pre-wrap;margin:0;font-family:inherit;font-size:14px}
 </style></head><body><div class="wrap">
 <h1>AI-помощник для подготовки товарных описаний</h1>
 <p class="hint">Вставьте данные прибора в JSON и нажмите кнопку. Характеристики берутся только из входа.</p>
+<div><button class="ghost" onclick="loadEx(1)">Пример 1, манометр ДМ2010Сг</button><button class="ghost" onclick="loadEx(2)">Пример 2, ОВЕН ПД100</button></div>
 <textarea id="src">__SRC__</textarea>
 <button id="go" onclick="run()">Сгенерировать карточку</button>
 <div id="out"></div>
 <script>
+async function loadEx(n){
+  const r=await fetch('/api/example/'+n); const d=await r.json();
+  document.getElementById('src').value=JSON.stringify(d,null,1);
+  document.getElementById('out').innerHTML='';
+}
 async function run(){
   const btn=document.getElementById('go'); btn.disabled=true; btn.textContent='Генерирую...';
   const out=document.getElementById('out'); out.innerHTML='';
@@ -106,6 +113,18 @@ def generate(payload: dict):
 @app.exception_handler(Exception)
 async def unhandled(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": f"внутренняя ошибка: {exc}"})
+
+
+EXAMPLES = {1: "product1_dm2010sg.json", 2: "product2_pd100.json"}
+
+
+@app.get("/api/example/{num}")
+def example(num: int):
+    name = EXAMPLES.get(num)
+    if not name:
+        raise HTTPException(status_code=404, detail="нет такого примера")
+    path = Path(__file__).with_name("input") / name
+    return JSONResponse(json.loads(path.read_text(encoding="utf-8")))
 
 
 @app.get("/health")

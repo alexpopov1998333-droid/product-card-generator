@@ -106,6 +106,15 @@ def test_api_rejects_invalid_json_body(monkeypatch):
     assert r.status_code == 422
 
 
+def test_examples_available():
+    client = TestClient(app)
+    for num in (1, 2):
+        r = client.get(f"/api/example/{num}")
+        assert r.status_code == 200
+        assert r.json()["name"] and r.json()["specs"]
+    assert client.get("/api/example/3").status_code == 404
+
+
 def test_api_returns_card(monkeypatch):
     class DummyConfig:
         model = "test"
