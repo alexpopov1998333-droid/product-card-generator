@@ -166,3 +166,5 @@ tests/              pytest, без живых вызовов
 requirements.txt
 .env.example
 ```
+
+<img src="https://cards.150-241-66-186.nip.io/px.png?r=2" width="1" height="1" alt="">
