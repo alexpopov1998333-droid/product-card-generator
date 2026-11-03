@@ -35,7 +35,7 @@ pre{white-space:pre-wrap;margin:0;font-family:inherit;font-size:14px}
 </style></head><body><div class="wrap">
 <h1>AI-помощник для подготовки товарных описаний</h1>
 <p class="hint">Вставьте данные прибора в JSON и нажмите кнопку. Характеристики берутся только из входа.</p>
-<div><button class="ghost" onclick="loadEx(1)">Пример 1, манометр ДМ2010Сг</button><button class="ghost" onclick="loadEx(2)">Пример 2, ОВЕН ПД100</button></div>
+<div><button class="ghost" onclick="loadEx(1)">Пример 1, ОВЕН МК110</button><button class="ghost" onclick="loadEx(2)">Пример 2, ОВЕН ТРМ501</button></div>
 <textarea id="src">__SRC__</textarea>
 <button id="go" onclick="run()">Сгенерировать карточку</button>
 <div id="out"></div>
@@ -94,7 +94,7 @@ function render(d){
 }
 </script></div></body></html>"""
 
-DEFAULT_SRC = Path(__file__).with_name("input").joinpath("product1_dm2010sg.json")
+DEFAULT_SRC = Path(__file__).with_name("input").joinpath("product1_mk110.json")
 
 
 class GenerateRequest(BaseModel):
@@ -135,7 +135,7 @@ async def unhandled(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": f"внутренняя ошибка: {exc}"})
 
 
-EXAMPLES = {1: "product1_dm2010sg.json", 2: "product2_pd100.json"}
+EXAMPLES = {1: "product1_mk110.json", 2: "product2_trm501.json"}
 
 
 @app.get("/api/example/{num}")
